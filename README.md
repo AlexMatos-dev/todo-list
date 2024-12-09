@@ -1,66 +1,121 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Projeto ToDo List
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## O que é o Projeto ToDo List?
+O ToDo List é uma aplicação para gerenciar tarefas, permitindo que o usuário crie, leia, atualize e exclua tarefas. Esse tipo de aplicação envolve as operações básicas de um sistema CRUD (Create, Read, Update, Delete).
 
-## About Laravel
+Com Laravel, estamos explorando:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Rotas básicas
+- Controladores e modelos
+- Operações com o banco de dados via Eloquent ORM
+- Visualizações dinâmicas com Blade
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Agora, vou detalhar cada etapa do que foi implementado.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 1. Estrutura do Projeto Laravel
+Quando criamos o projeto com `laravel new todo-list`, o Laravel gerou uma estrutura organizada com pastas e arquivos. Aqui estão os principais diretórios usados:
 
-## Learning Laravel
+- `routes/web.php`: Onde definimos as rotas HTTP.
+- `app/Models`: Contém os modelos, que representam as tabelas do banco.
+- `app/Http/Controllers`: Contém os controladores, onde fica a lógica do negócio.
+- `resources/views`: Contém as visualizações (páginas do front-end) usando Blade.
+- `database/migrations`: Contém os arquivos para criar e modificar tabelas no banco de dados.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 2. Configuração do Banco de Dados
+No arquivo `.env`, configuramos o banco de dados para que o Laravel possa se conectar a ele. Por exemplo:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+-`env
+- DB_CONNECTION=mysql
+- DB_HOST=127.0.0.1
+- DB_PORT=3306
+- DB_DATABASE=todo_list
+- DB_USERNAME=root
+- DB_PASSWORD=
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Isso garante que as operações com o banco sejam realizadas corretamente.
+## 3. Criação da Tabela de Tarefas
+Usamos o comando php artisan make:migration create_tasks_table para criar um arquivo de migração. Esse arquivo define como a tabela tasks será estruturada no banco de dados. No arquivo de migração, adicionamos colunas como title e description:
+php
+Schema::create('tasks', function (Blueprint $table) {
+    $table->id();
+    $table->string('title');
+    $table->text('description')->nullable();
+    $table->timestamps(); // Cria 'created_at' e 'updated_at'
+});
 
-## Laravel Sponsors
+Depois, executamos php artisan migrate para aplicar a migração e criar a tabela no banco de dados.
+## 4. Criamos o Modelo Task
+O modelo é a representação da tabela no código. Criamos o modelo Task com o comando:
+bash
+php artisan make:model Task
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+No modelo, podemos configurar os atributos que podem ser manipulados pelo Laravel:
+php
+class Task extends Model
+{
+    protected $fillable = ['title', 'description'];
+}
 
-### Premium Partners
+Isso permite que possamos inserir e atualizar dados no banco com o Eloquent ORM.
+## 5. Criamos o Controlador TaskController
+O controlador gerencia a lógica de negócios. Criamos o TaskController com:
+bash
+php artisan make:controller TaskController
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Dentro dele, implementamos os métodos para o CRUD:
+index(): Lista todas as tarefas.
+create(): Exibe o formulário para criar uma nova tarefa.
+store(): Salva uma nova tarefa no banco de dados.
+edit(): Exibe o formulário para editar uma tarefa existente.
+update(): Atualiza os dados de uma tarefa.
+destroy(): Remove uma tarefa.
+Exemplo do método store para salvar uma nova tarefa:
+php
+  public function store(Request $request)
+  {
+    $request->validate([
+        'title' => 'required|max:255',
+        'description' => 'nullable'
+    ]);
 
-## Contributing
+    Task::create($request->all());
+    return redirect()->route('tasks.index')->with('success', 'Tarefa criada com sucesso!');
+}
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 6. Rotas do Sistema
+No arquivo routes/web.php, conectamos as URLs da aplicação com os métodos do controlador. Por exemplo:
+php
+Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
+Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+Route::get('/tasks/{task}/edit', [TaskController::class, 'edit'])->name('tasks.edit');
+Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 
-## Code of Conduct
+Essas rotas tornam o sistema navegável.
+## 7. Visualizações com Blade
+No diretório resources/views, criamos as páginas usando o Blade, o mecanismo de templates do Laravel. Por exemplo:
+index.blade.php: Exibe uma lista de tarefas.
+create.blade.php: Exibe o formulário de criação.
+edit.blade.php: Exibe o formulário de edição.
+Um exemplo da página index.blade.php:
+text
+@extends('layout')
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+@section('content')
+<h1>Lista de Tarefas</h1>
+<a href="{{ route('tasks.create') }}">Criar Nova Tarefa</a>
+<ul>
+    @foreach ($tasks as $task)
+        <li>
+            <strong>{{ $task->title }}</strong>: {{ $task->description }}
+            <a href="{{ route('tasks.edit', $task) }}">Editar</a>
+            <form action="{{ route('tasks.destroy', $task) }}" method="POST" style="display:inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit">Remover</button>
+            </form>
+        </li>
+    @endforeach
+</ul>
+@endsection
